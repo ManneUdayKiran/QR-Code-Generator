@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 400px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { text-align: center; }
+    #result { margin-top: 16px; padding: 12px; background: #e0ffe0; border-radius: 4px; word-break: break-all; }
+    #reader { margin: 0 auto; }
+    .btn { display: inline-block; margin: 8px 0; padding: 8px 16px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    .btn:disabled { background: #aaa; }
+    input[type="file"] { margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>QR Code Scanner</h1>
+    <div id="reader" style="width: 100%; min-height: 250px;"></div>
+    <button class="btn" id="start-camera">Start Camera Scan</button>
+    <button class="btn" id="stop-camera" disabled>Stop Camera</button>
+    <hr/>
+    <label for="qr-image">Or upload QR image:</label>
+    <input type="file" id="qr-image" accept="image/*">
+    <div id="result"></div>
+  </div>
+  <script>
+    const resultDiv = document.getElementById('result');
+    const startBtn = document.getElementById('start-camera');
+    const stopBtn = document.getElementById('stop-camera');
+    const qrImageInput = document.getElementById('qr-image');
+    let html5QrCode;
+    let isCameraRunning = false;
+
+    function showResult(text) {
+      resultDiv.textContent = text ? `QR Code: ${text}` : '';
+    }
+
+    startBtn.onclick = async () => {
+      if (isCameraRunning) return;
+      html5QrCode = new Html5Qrcode("reader");
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      showResult('');
+      try {
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: 250 },
+          (decodedText) => {
+            showResult(decodedText);
+            html5QrCode.stop();
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            isCameraRunning = false;
+          },
+          (error) => {
+            // Optionally show scan errors
+          }
+        );
+        isCameraRunning = true;
+      } catch (err) {
+        showResult('Camera start failed: ' + err);
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+    };
+
+    stopBtn.onclick = () => {
+      if (html5QrCode && isCameraRunning) {
+        html5QrCode.stop().then(() => {
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
+          isCameraRunning = false;
+          showResult('');
+        });
+      }
+    };
+
+    qrImageInput.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      showResult('');
+      if (isCameraRunning && html5QrCode) {
+        await html5QrCode.stop();
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        isCameraRunning = false;
+      }
+      const html5QrCodeImg = new Html5Qrcode("reader");
+      html5QrCodeImg.scanFile(file, true)
+        .then(decodedText => {
+          showResult(decodedText);
+        })
+        .catch(err => {
+          showResult('No QR code found in image.');
+        });
+    };
+  </script>
+</body>
+</html> 
