@@ -2,6 +2,11 @@
 
 A modern, responsive web application for scanning QR codes using your device's camera or by uploading images. Built with vanilla JavaScript and the powerful `html5-qrcode` library.
 
+## ScreenShots
+![image](https://github.com/user-attachments/assets/a594d1bc-8491-4815-9458-1570d230472f)
+![image](https://github.com/user-attachments/assets/2709ce1b-3680-478e-b5b2-d5c505b0fe77)
+
+
 ## 🌟 Features
 
 - **Camera Scanning**: Real-time QR code scanning using your device's camera
